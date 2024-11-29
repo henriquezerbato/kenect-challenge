@@ -14,6 +14,7 @@ import org.springframework.web.client.RestTemplate;
 @Configuration
 public class AppConfig {
 
+    // Should come in a more secure way
     private static final String EXTERNAL_CONTACTS_TOKEN = "J7ybt6jv6pdJ4gyQP9gNonsY";
 
     @Bean
