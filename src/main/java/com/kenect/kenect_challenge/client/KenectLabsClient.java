@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import com.kenect.kenect_challenge.config.KenectLabConfig;
 import com.kenect.kenect_challenge.exception.ExternalServiceException;
 import com.kenect.kenect_challenge.model.Contact;
 import com.kenect.kenect_challenge.model.KenectLabContact;
@@ -22,19 +23,18 @@ import lombok.RequiredArgsConstructor;
 @Qualifier("kenect_labs_client")
 public class KenectLabsClient implements PagedContactSourceClient {
 
-    private static final String EXTERNAL_CONTACTS_URL = "https://candidate-challenge-api-489237493095.us-central1.run.app/api/v1/contacts";
-    private static final String PAGE_COUNTER_HEADER_NAME = "total-pages";
-
     @Qualifier("kenect_labs_rest_template")
     private final RestTemplate kenectRestTemplate;
 
     private final ConversionService conversionService;
 
+    private final KenectLabConfig kenectLabCredentials;
+
     public int getTotalPageCount() {
         try {
             return Optional
-                    .ofNullable(kenectRestTemplate.headForHeaders(EXTERNAL_CONTACTS_URL)
-                            .get(PAGE_COUNTER_HEADER_NAME))
+                    .ofNullable(kenectRestTemplate.headForHeaders(kenectLabCredentials.getUrl())
+                            .get(kenectLabCredentials.getPageCounterHeaderName()))
                     .filter(headerValues -> !headerValues.isEmpty())
                     .map(headerValues -> Integer.valueOf(headerValues.get(0)))
                     .orElse(0);
@@ -52,7 +52,7 @@ public class KenectLabsClient implements PagedContactSourceClient {
     private List<KenectLabContact> retrieveContacts(int pageNumber) {
         try {
             return Optional
-                    .ofNullable(kenectRestTemplate.getForObject(EXTERNAL_CONTACTS_URL + "?page={pageNumber}",
+                    .ofNullable(kenectRestTemplate.getForObject(kenectLabCredentials.getUrl() + "?page={pageNumber}",
                             KenectLabContact[].class, Map.of("pageNumber", pageNumber)))
                     .map(contacts -> Arrays.asList(contacts))
                     .orElse(List.of());
